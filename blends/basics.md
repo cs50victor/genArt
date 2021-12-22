@@ -16,8 +16,18 @@
 
 - "`" + 1-9 (Quick View Snap on Selected Object)
 
+- Ctrl+Alt+0 - snap camera to main object/mesh location
+
+- Press 'N',go to view, lock camera to view
+
+- Alt+G , snap any object to center of grid
+
 # Main Ideas
 - Scene
   - Light
   - Camera
-  - Mesh (Object)
+  - Object(Mesh)
+    - AFAIK there can be only one mesh per object. 
+    - However there can be multiple objects sharing the same mesh data block.
+    - obj.name gives you the object name. 
+    - obj.data.name gives you mesh name. 
