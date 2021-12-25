@@ -31,3 +31,9 @@
     - However there can be multiple objects sharing the same mesh data block.
     - obj.name gives you the object name. 
     - obj.data.name gives you mesh name. 
+
+
+light_data = bpy.data.lights.new('light', type='POINT')
+light = bpy.data.objects.new('light', light_data)
+bpy.context.collections.objects.link(light)
+light.location = (3, 4, -5)
