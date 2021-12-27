@@ -1,236 +1,350 @@
 import os, sys, bpy, bmesh, mathutils
+import numpy as np
 from math import radians
 from addon_utils import modules
-from time import time, strftime,localtime
+from time import time, strftime, localtime
+
 sys.path.append('C:/Users/Admin/Desktop/genArt/utils')
 from tools import *
 
-blendData = bpy.data       # Bdata
-blendContext = bpy.context # Bcontext
-blendOperators = bpy.ops   # Bops
-blendUtils = bpy.utils
-blendPath = bpy.path
+blendData = bpy.data
+blendContext = bpy.context
+blendOperators = bpy.ops
 studioThickness, setThickness = 2, 2
-isVideo, squareImg = False,True 
+isVideo, squareImg = True, True
+# Use global variables to easily access any object
+studioName, studioSize, setStudioX, setStudioY,setStudioZ = "Studio", 100, 2, 2,2
+setName, setSize, setScaleX, setScaleY,setScaleZ = "Set", 32, 2, 2, 1
+planeName, planeMatName, planeSize = "AbstractPlane", "PlaneMat", 8
+pSubsurfName, pMarbleTextureName, pSolidifyMod, pSmoothMod = "PlaneSubsurf", 'PlaneMarble', "PlaneThickness", "PlaneSmoothness"
+bezierCurveName, displaceAxesName, displaceModName = "Bezier", "DisplacementAxes", "PlaneDisplaceMod"
+displacePathName = "DisplacementPath"
+cameraName, backlitName = "MainCamera", "Backlit"
+cameraTypes =['PERSP','ORTHO','PANO']
 
-def addStudio(size=120, scaleX=1.5, scaleY=1.5, studioName=None):
-    if not studioName or type(studioName) != str:
-        raise Exception("Studio has no name or name is not a string.")
+def addStudio():
     ensureMode('OBJECT')
-    blendOperators.mesh.primitive_plane_add(size=size,
-                                            enter_editmode=True,
-                                            align='WORLD',
-                                            location=(0, 0, 0),
-                                            scale=(1, 1, 1))
-    blendOperators.mesh.select_all(action='DESELECT')
+    mesh = blendOperators.mesh
+    # Add plane
+    mesh.primitive_plane_add(size=studioSize,
+                             enter_editmode=True,
+                             align='WORLD',
+                             location=(0, 0, 0),
+                             scale=(1, 1, 1))
+    # Extrude plane to make walls
+    mesh.select_all(action='DESELECT')
     bm = bmesh.from_edit_mesh(blendContext.object.data)
     for edge in bm.edges:
         if edge.index in [0, 1, 2]:
             edge.select = True
     bmesh.update_edit_mesh(blendContext.object.data)
-    blendOperators.mesh.extrude_context_move(
+    mesh.extrude_context_move(
         TRANSFORM_OT_translate={
-            "value": (0, 0, size * 1.3),
+            "value": (0, 0, studioSize * 1.3),
             "orient_axis_ortho": 'X',
             "orient_type": 'LOCAL',
             "orient_matrix": ((1, 0, 0), (0, 1, 0), (0, 0, 1))
         })
 
+    # Extrude Studio (add thickness)
     ensureMode('OBJECT')
     blendOperators.object.transform_apply(location=False,
                                           rotation=True,
                                           scale=True)
     ensureMode('EDIT')
-    blendOperators.mesh.select_all(action='SELECT')
-    blendOperators.mesh.extrude_region_shrink_fatten(
-        TRANSFORM_OT_shrink_fatten={
-            "value": studioThickness,
-            "use_even_offset": True
-        })
+    mesh.select_all(action='SELECT')
+    mesh.extrude_region_shrink_fatten(TRANSFORM_OT_shrink_fatten={
+        "value": studioThickness,
+        "use_even_offset": True
+    })
+    # Resize and rename Studio
     ensureMode('OBJECT')
-    blendOperators.transform.resize(value=(scaleX, scaleY, 1))
+    blendOperators.transform.resize(value=(setStudioX, setStudioY, setStudioZ))
     blendContext.object.name = studioName
     #blendContext.object.hide_set(True)
 
-def addSet(size=60, scaleX=1.8, scaleY=1.8, infiniteBackground=False, setName=None):
-    if not setName or type(setName) != str:
-        raise Exception("Set has no name or name is not a string.")
+
+def addSet(infiniteBackground=False):
     ensureMode('OBJECT')
-    blendOperators.mesh.primitive_plane_add(size=size,
-                                            enter_editmode=True,
-                                            align='WORLD',
-                                            location=(0, 0, studioThickness),
-                                            scale=(1, 1, 1))
-    blendOperators.mesh.select_all(action='DESELECT')
+    mesh = blendOperators.mesh
+    # Add plane
+    mesh.primitive_plane_add(size=setSize,
+                             enter_editmode=True,
+                             align='WORLD',
+                             location=(0, 0, studioThickness),
+                             scale=(1, 1, 1))
+    # Extrude plane to make walls
+    mesh.select_all(action='DESELECT')
     bm = bmesh.from_edit_mesh(blendContext.object.data)
     for edge in bm.edges:
-        if edge.index in [0,1,2]:
+        if edge.index in [0, 1, 2]:
             edge.select = True
     bmesh.update_edit_mesh(blendContext.object.data)
-    blendOperators.mesh.extrude_context_move(
+    mesh.extrude_context_move(
         TRANSFORM_OT_translate={
-            "value": (0, 0, size * 1.3),
+            "value": (0, 0, setSize * 1.3),
             "orient_axis_ortho": 'X',
             "orient_type": 'LOCAL',
             "orient_matrix": ((1, 0, 0), (0, 1, 0), (0, 0, 1))
         })
     if infiniteBackground:
         for edge in bm.edges:
-            if edge.index in [0,1,2]:
+            if edge.index in [0, 1, 2]:
                 edge.select = True
             else:
                 edge.select = False
         bmesh.update_edit_mesh(blendContext.object.data)
-        blendOperators.mesh.bevel(offset=float(size/5), offset_pct=0, segments=5, release_confirm=True)
+        mesh.bevel(offset=float(setSize / 5),
+                   offset_pct=0,
+                   segments=5,
+                   release_confirm=True)
 
-
+    # Extrude set (add thickness)
     ensureMode('OBJECT')
     blendOperators.object.transform_apply(location=False,
                                           rotation=True,
                                           scale=True)
     ensureMode('EDIT')
-    blendOperators.mesh.select_all(action='SELECT')
-    blendOperators.mesh.extrude_region_shrink_fatten(
-        TRANSFORM_OT_shrink_fatten={
-            "value": setThickness,
-            "use_even_offset": True
-        })
-    blendOperators.mesh.faces_shade_smooth()
+    mesh.select_all(action='SELECT')
+    mesh.extrude_region_shrink_fatten(TRANSFORM_OT_shrink_fatten={
+        "value": setThickness,
+        "use_even_offset": True
+    })
+    mesh.faces_shade_smooth()
+    # Resize and rename Studio
     ensureMode('OBJECT')
-    blendOperators.transform.resize(value=(scaleX, scaleY, 1))
+    blendOperators.transform.resize(value=(setScaleX, setScaleY, setScaleZ))
     blendContext.object.name = setName
 
-def addPlane(size=10, planeName=None):
-    if not planeName or type(planeName) != str:
-        raise Exception("Plane has no name or name is not a string.")
 
-    z=2*(setThickness+studioThickness)^2 +size
+def addPlane():
+    z = setThickness + studioThickness + setSize/3
+    # Create and name abstract plane
     ensureMode('OBJECT')
-    blendOperators.mesh.primitive_plane_add(size=size,enter_editmode=False,align="WORLD",
-                                    location=(0, 0, z),
-                                    scale=(1, 1, 1))
+    blendOperators.mesh.primitive_plane_add(size=planeSize,
+                                            enter_editmode=False,
+                                            align="WORLD",
+                                            location=(0, 0, z),
+                                            scale=(1, 1, 1))
     blendContext.object.name = planeName
     ensureMode('EDIT')
     blendOperators.mesh.subdivide(number_cuts=50)
     ensureMode('OBJECT')
+    # Resize and rename Studio
     plane = blendContext.active_object
     plane.rotation_euler[0] += radians(90)
     cursorToLocation(plane.location)
-    subSurf = plane.modifiers.new(name="planeSubsurf",type='SUBSURF')
+    # Add subsurf
+    subSurf = plane.modifiers.new(name=pSubsurfName, type='SUBSURF')
     subSurf.show_only_control_edges = False
     subSurf.boundary_smooth = 'PRESERVE_CORNERS'
-
-    displace = plane.modifiers.new(name="planeDisplaceMod",type='DISPLACE')
+    # Add marble texture to plane
+    displace = plane.modifiers.new(name=displaceModName, type='DISPLACE')
     displace.strength = 0.1
-    displaceTexture = blendData.textures.new('planeMarble', type = 'MARBLE')
+    displaceTexture = blendData.textures.new(pMarbleTextureName, type='MARBLE')
     displaceTexture.noise_scale = float(0.8)
     displaceTexture.turbulence = float(4.2)
-    displaceTexture.noise_depth = int(0)
+    displaceTexture.noise_depth = int(2)
     displace.texture = displaceTexture
     ensureMode('EDIT')
     ensureMode('OBJECT')
-    solidify = plane.modifiers.new(name="planeThickness",type='SOLIDIFY')
-    solidify.thickness = 4.4
-    smoothness = plane.modifiers.new(name="planeSmoothness",type='SMOOTH')
-    smoothness.iterations = 11
-    plane.data.polygons.foreach_set('use_smooth', [True] * len(blendContext.object.data.polygons))
+    # Add smoothness and thickness to plane
+    solidify = plane.modifiers.new(name=pSolidifyMod, type='SOLIDIFY')
+    solidify.thickness = 0.7
+    smoothness = plane.modifiers.new(name=pSmoothMod, type='SMOOTH')
+    smoothness.iterations = 15
+    smoothness.use_x = False
+    smoothness.use_y = False
+    smoothness.use_z = True
+    plane.data.polygons.foreach_set('use_smooth', [True] *
+                                    len(blendContext.object.data.polygons))
     plane.modifiers.update()
     plane.data.update()
+    # create bezierCurve
+    blendOperators.curve.primitive_bezier_circle_add(
+        radius=float(planeSize / 4),
+        enter_editmode=False,
+        rotation=(0.0, 0.0, float(radians(90))),
+        scale=(1, 1, 1))
+    bezierCurve = blendContext.object
+    bezierCurve.name = bezierCurveName
+    # create axes around bezier
+    blendOperators.object.empty_add(type='PLAIN_AXES',
+                                    align='WORLD',
+                                    scale=(1, 1, 1))
+    axes = blendContext.object
+    axes.name = displaceAxesName
+    axes.location = (0.0, 0.0, 0.0)
+    # add constraint - to bezier
+    displacePath = axes.constraints.new(type='FOLLOW_PATH')
+    displacePath.target = blendData.objects[bezierCurveName]
+    displacePath.name = displacePathName
+    # add modifier as displacement texture
+    displace = blendData.objects[planeName].modifiers[displaceModName]
+    displace.texture_coords = 'OBJECT'
+    displace.texture_coords_object = blendData.objects[displaceAxesName]
 
-def addPlaneMat(materialName=None):
-    if not materialName or type(materialName) != str:
-        raise Exception("MandleBulb material has no name or material name is not a string.")
-
-    mat = newMaterial(name=materialName)
+def addPlaneMat():
+    # creating a new material
+    mat = newMaterial(name=planeMatName)
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
-    outputSurface,outputVolume,outputDisplacement = addNode(nodes,'ShaderNodeOutputMaterial').inputs
-    r,g,b = 0,0,0
+    r, g, b = 0, 0, 0
 
-    shader = addNode(nodes,'ShaderNodeBsdfPrincipled')
+    # adding a output material node
+    outputSurface, outputVolume, outputDisplacement = addNode(
+        nodes, 'ShaderNodeOutputMaterial').inputs
+
+    # adding a shader node
+    shader = addNode(nodes, 'ShaderNodeBsdfPrincipled')
     shader.inputs["Base Color"].default_value = (r, g, b, 1)
-    shader.inputs["Roughness"].default_value = float(0.11)
-    shader.inputs["Metallic"].default_value = float(0.12)
+    shader.inputs["Roughness"].default_value = np.random.uniform(0,0.19)
+    shader.inputs["Metallic"].default_value = np.random.uniform(0,0.6)
     links.new(shader.outputs["BSDF"], outputSurface)
 
-def lightsCamera(setSize,setScaleX,setScaleY):
-    blendContext.scene.world.cycles.volume_step_size = 0.1
+def lightsCamera( cameraType=1):
     ensureMode('OBJECT')
     # Main Camera
-    blendOperators.object.camera_add(align='VIEW', rotation=(radians(90), 0, radians(180)), scale=(1, 1, 1))
-    blendContext.object.name = "MainCamera"
-    blendContext.object.location[1] = float(12) 
-    blendContext.object.data.type = 'PANO'
-    blendContext.object.data.cycles.panorama_type = 'FISHEYE_EQUISOLID'
-    blendContext.object.data.cycles.fisheye_fov = radians(200)
-    if squareImg:
-        blendContext.object.data.sensor_width = 33
+    blendOperators.object.camera_add(align='VIEW',
+                                     rotation=(radians(90), 0, radians(180)),
+                                     scale=(1, 1, 1))
+    camera = blendContext.object
+    camera.name = cameraName
+    camera.location[1] = float(12)
+    # ['PERSP','PANO','ORTHO']
+    cameraType = cameraTypes[0]
+    if cameraType=='PERSP':
+        camera.data.type = cameraType
+        camera.data.dof.use_dof = True
+        camera.data.dof.focus_object = blendData.objects[planeName]
+        camera.data.lens = 40
+
+    elif cameraType=='PANO':
+        camera.data.type = cameraType
+        camera.data.cycles.panorama_type = 'FISHEYE_EQUISOLID'
+        camera.data.cycles.fisheye_fov = radians(200)
+        if squareImg:
+            camera.data.sensor_width = 33
+        else:
+            camera.data.sensor_width = 41
     else:
-        blendContext.object.data.sensor_width = 41
+        camera.data.type = 'PANO'
+        camera.data.cycles.panorama_type = 'FISHEYE_EQUISOLID'
+        camera.data.cycles.fisheye_fov = radians(200)
+        if squareImg:
+            camera.data.sensor_width = 33
+        else:
+            camera.data.sensor_width = 41
+
     #Backlit
-    blendOperators.object.light_add(type='POINT', align='WORLD',scale=(1, 1, 1))
-    blendContext.object.name = "Backlit"
-    blendContext.object.data.energy = 100000
-    blendContext.object.data.color = (1, 0.777483, 0.0875242)
-    blendContext.object.location = (0,float(-setSize/setScaleY -10),float(setSize))
+    blendOperators.object.light_add(type='POINT',
+                                    align='WORLD',
+                                    scale=(1, 1, 1))
+    backlit = blendContext.object
+    backlit.name = backlitName
+    backlit.data.energy = 100000
+    backlit.data.color = (1, 0.473101, 0.031306)# randomColor()
+    
+    backlit.location = (0, float(-setSize / setScaleY - 10), float(setSize))
+    # World Lighting 
+    world = blendData.worlds['World'].node_tree  
+    nodes = world.nodes
+    links = world.links
+    nodes.clear()
+    # Add Background node
+    node_background = addNode(nodes, 'ShaderNodeBackground')
+    # Add Environment Texture node
+    node_environment = addNode(nodes, 'ShaderNodeTexEnvironment')
+    # Load and assign the image to the node property
+    node_environment.image = blendData.images.load(f"{repo}/hdri/museumplein_8k.exr")
+    # Add Output node
+    node_output = addNode(nodes, 'ShaderNodeOutputWorld') 
+    # Link all nodes
+    links.new(node_environment.outputs["Color"], node_background.inputs["Color"])
+    links.new(node_background.outputs["Background"], node_output.inputs["Surface"])
 
-def animate(planeName,planeSize):
-    if not planeName:
-        raise Exception("Please include the plane name.")
+def animate():
     ensureMode('OBJECT')
-
-    blendOperators.curve.primitive_bezier_circle_add(radius=float(planeSize/4),
-        enter_editmode=False, rotation=(0.0, 0.0, float(radians(90))), scale=(1, 1, 1))
-    blendContext.object.name = "Bezier"
-    blendOperators.object.empty_add(type='PLAIN_AXES', align='WORLD', scale=(1, 1, 1))
-    blendContext.object.name = "DisplacementAxes"
-    blendContext.object.location=(0.0,0.0,0.0)
-    followPath = blendContext.object.constraints.new(type='FOLLOW_PATH')
-    followPath.target = blendData.objects["Bezier"]
-    followPath.offset = 1
-    followPath.keyframe_insert(data_path="offset", frame=0)
-    followPath.offset = 100
-    followPath.keyframe_insert(data_path="offset", frame=250)
-
-    displace = blendData.objects[planeName].modifiers["planeDisplaceMod"]
-    displace.texture_coords = 'OBJECT'
-    displace.texture_coords_object = blendData.objects["DisplacementAxes"]
+    # Increase displace path
+    displacePath = blendData.objects[displaceAxesName].constraints[displacePathName]
+    displacePath.offset = 1
+    displacePath.keyframe_insert(data_path="offset", frame=0)
+    displacePath.offset = 200
+    displacePath.keyframe_insert(data_path="offset", frame=250)
+    # Rotate abstract plane
+    plane = blendData.objects[planeName]
+    plane.rotation_euler[2] += radians(0)
+    plane.keyframe_insert(data_path="rotation_euler", frame=0)
+    plane.rotation_euler[2] += radians(360)
+    plane.keyframe_insert(data_path="rotation_euler", frame=250)
+    
+    # Rotate, move and scale displacement bezier
+    displaceBezier = blendData.objects[bezierCurveName]
+    currFrame = 1 
+    for frame in range(1,int(250/6)):
+        currFrame+=frame
+        a = np.random.randint(3)
+        displaceBezier.rotation_euler[a] += radians(np.random.randint(-360, 360))
+        displaceBezier.keyframe_insert(data_path="rotation_euler", frame=currFrame)
+        b = np.random.randint(3)
+        displaceBezier.scale[b] += np.random.randint(-5, 5)
+        displaceBezier.keyframe_insert(data_path="scale", frame=currFrame)
+    
+    # Rotate and scale camera
+    cam = blendData.objects[cameraName]
+    cam.rotation_euler = cam.rotation_euler
+    cam.keyframe_insert(data_path="rotation_euler", frame=0)
+    cam.rotation_euler[1] += radians(360)
+    cam.keyframe_insert(data_path="rotation_euler", frame=250)
+    # -----------------
+    cam.data.lens = 14
+    cam.data.keyframe_insert(data_path="lens", frame=0)
+    cam.data.lens = 200
+    cam.data.keyframe_insert(data_path="lens", frame=int(250/2))
+    cam.data.lens = 14
+    cam.data.keyframe_insert(data_path="lens", frame=250)
+    
+    # Slowly decrease backlit
+    backLight = blendData.objects[backlitName].data
+    backLight.color = backLight.color
+    backLight.energy = 1000
+    backLight.keyframe_insert(data_path="color", frame=0)
+    backLight.keyframe_insert(data_path="energy", frame=0)
+    backLight.color = (166,16,30)
+    backLight.energy = 10000
+    backLight.keyframe_insert(data_path="color", frame=250)
+    backLight.keyframe_insert(data_path="energy", frame=250)
 
 def action():
+    if isVideo: animate()
     render(isVideo=isVideo)
 
+
 def composite():
-    pass 
+    pass
+
 
 def blend():
     cleanSlate()
     cyclesSettings(squareRender=squareImg)
-    studioName,studioSize,setScaleX,setScaleY = "Studio",320,2,5
-    setName,setSize = "Set", 64
-    planeName,planeMatName, planeSize = "AbstractPlane","planeMat",16
     # Studio and Set
-    addStudio(size=studioSize,studioName=studioName)
-    addSet(size=setSize,scaleX=setScaleX, scaleY=setScaleY,
-             setName=setName)
+    addStudio()
+    addSet(infiniteBackground=True)
     # Objects
-    addPlane(size=planeSize,planeName=planeName)
-    
+    addPlane()
     # Materials
-    addPlaneMat(planeMatName)
-
+    addPlaneMat()
     # Adding materials to objects
-    addMaterialToObjects([planeName],planeMatName)
-
-    # Animate
-    animate(planeName,planeSize)
-    
+    addMaterialToObjects([planeName], planeMatName)
     # Lights & Camera
-    lightsCamera(setSize,setScaleX,setScaleY)
-
-    # Render / Action
+    lightsCamera()
+    # Action (Animate +Render )
     action()
+
 
 time_start = time()
 blend()
 print(f"\n{strftime('%I:%M:%S %p',localtime())}")
 print("Script execution time: [%.7f] seconds" % (time() - time_start))
+
+

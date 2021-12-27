@@ -1,5 +1,6 @@
 # Basics for catching up
 
+reset - bpy.ops.wm.read_factory_settings()
 **Hot Keys**
 - G (move), S(scale), R(rotate)
   - + direction[x,y,z] / hold middle clicker (move along axis) 
