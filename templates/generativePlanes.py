@@ -385,35 +385,83 @@ def primitives():
                                             location=(0, y, z),
                                             scale=(1, 1, 1))
     primitives.append(blendContext.object)
-    mesh.primitive_plane_add(size=planeSize,
-                                            enter_editmode=False,
-                                            align="WORLD",
-                                            location=(0, y, z),
+    mesh.primitive_cube_add(size=planeSize, enter_editmode=False,
+                                            align='WORLD', location=(0, y, z),
                                             scale=(1, 1, 1))
+    
     primitives.append(blendContext.object)
-    mesh.primitive_plane_add(size=planeSize,
-                                            enter_editmode=False,
-                                            align="WORLD",
-                                            location=(0, y, z),
+    mesh.primitive_circle_add(radius=1, enter_editmode=False,
+                                            align='WORLD', location=(0, y, z),
                                             scale=(1, 1, 1))
+    
     primitives.append(blendContext.object)
-    mesh.primitive_plane_add(size=planeSize,
-                                            enter_editmode=False,
-                                            align="WORLD",
-                                            location=(0, y, z),
+    mesh.primitive_uv_sphere_add(radius=1, enter_editmode=False,
+                                            align='WORLD', location=(0, y, z), 
                                             scale=(1, 1, 1))
+
     primitives.append(blendContext.object)
-    mesh.primitive_plane_add(size=planeSize,
-                                            enter_editmode=False,
-                                            align="WORLD",
-                                            location=(0, y, z),
+    mesh.primitive_ico_sphere_add(radius=1, enter_editmode=False,
+                                            align='WORLD', location=(0, y, z), 
                                             scale=(1, 1, 1))
+
     primitives.append(blendContext.object)
-    mesh.primitive_plane_add(size=planeSize,
-                                            enter_editmode=False,
-                                            align="WORLD",
-                                            location=(0, y, z),
+    mesh.primitive_cylinder_add(radius=1, depth=2, enter_editmode=False,
+                                            align='WORLD', location=(0, y, z), 
                                             scale=(1, 1, 1))
+
+    primitives.append(blendContext.object)
+    mesh.primitive_cone_add(radius1=1, radius2=0, depth=2, enter_editmode=False,
+                                            align='WORLD', location=(0, y, z), 
+                                            scale=(1, 1, 1))
+
+    primitives.append(blendContext.object)
+    mesh.primitive_torus_add(align='WORLD', location=(0, y, z),
+                                            major_radius=1, minor_radius=0.25, 
+                                            abso_major_rad=1.25, abso_minor_rad=0.75)
+
+    primitives.append(blendContext.object)
+    mesh.primitive_monkey_add(size=planeSize, enter_editmode=False,
+                                            align='WORLD', location=(0, y, z), 
+                                            scale=(1, 1, 1))
+
+    primitives.append(blendContext.object)
+    mesh.generate_geodesic_dome(align='WORLD', location=(0, y, z),change=False)
+
+    primitives.append(blendContext.object)
+    mesh.primitive_round_cube_add(align='WORLD', location=(0, y, z),change=False)
+
+    primitives.append(blendContext.object)
+    mesh.primitive_twisted_torus_add(align='WORLD', location=(0, y, z),change=False)
+
+    primitives.append(blendContext.object)
+    mesh.primitive_supertoroid_add(align='WORLD', location=(0, y, z),change=False)
+
+    primitives.append(blendContext.object)
+    mesh.primitive_torusknot_add(align='WORLD', location=(0, y, z),change=False)
+
+    primitives.append(blendContext.object)
+    mesh.primitive_gear(align='WORLD', location=(0, y, z),change=False)
+
+    primitives.append(blendContext.object)
+    blendOperators.object.metaball_add(type='BALL', radius=2, enter_editmode=False,
+                                            align='WORLD', location=(0, y, z), scale=(1, 1, 1))
+
+    primitives.append(blendContext.object)
+    blendOperators.object.metaball_add(type='CAPSULE', enter_editmode=False,
+                                            align='WORLD', location=(0, y, z), scale=(1, 1, 1))
+
+    primitives.append(blendContext.object)
+    blendOperators.object.metaball_add(type='PLANE', enter_editmode=False,
+                                            align='WORLD', location=(0, y, z), scale=(1, 1, 1))
+
+    primitives.append(blendContext.object)
+    blendOperators.object.metaball_add(type='ELLIPSOID', enter_editmode=False,
+                                            align='WORLD', location=(0, y, z), scale=(1, 1, 1))
+
+    primitives.append(blendContext.object)
+    blendOperators.object.metaball_add(type='CUBE', enter_editmode=False,
+                                            align='WORLD', location=(0, y, z), scale=(1, 1, 1))
+
     primitives.append(blendContext.object)
     
     return primitives
