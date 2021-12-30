@@ -11,7 +11,7 @@ blendData = bpy.data
 blendContext = bpy.context
 blendOperators = bpy.ops
 studioThickness, setThickness = 2, 2
-isVideo, squareImg = True, True
+isVideo, squareImg = False, True
 # Use global variables to easily access any object
 studioName, studioSize, setStudioX, setStudioY,setStudioZ = "Studio", 100, 2, 2,2
 setName, setSize, setScaleX, setScaleY,setScaleZ = "Set", 32, 2, 2, 1
@@ -20,7 +20,8 @@ pSubsurfName, pMarbleTextureName, pSolidifyMod, pSmoothMod = "PlaneSubsurf", 'Pl
 bezierCurveName, displaceAxesName, displaceModName = "Bezier", "DisplacementAxes", "PlaneDisplaceMod"
 displacePathName = "DisplacementPath"
 cameraName, backlitName = "MainCamera", "Backlit"
-cameraTypes =['PERSP','ORTHO','PANO']
+cameraTypes =['PERSP','PANO','ORTHO']
+glassMatName = "GlassMat"
 
 def addStudio():
     ensureMode('OBJECT')
@@ -31,13 +32,15 @@ def addStudio():
                              align='WORLD',
                              location=(0, 0, 0),
                              scale=(1, 1, 1))
+    studio = blendContext.object
+    studio.name = studioName
     # Extrude plane to make walls
     mesh.select_all(action='DESELECT')
-    bm = bmesh.from_edit_mesh(blendContext.object.data)
+    bm = bmesh.from_edit_mesh(studio.data)
     for edge in bm.edges:
         if edge.index in [0, 1, 2]:
             edge.select = True
-    bmesh.update_edit_mesh(blendContext.object.data)
+    bmesh.update_edit_mesh(studio.data)
     mesh.extrude_context_move(
         TRANSFORM_OT_translate={
             "value": (0, 0, studioSize * 1.3),
@@ -45,6 +48,19 @@ def addStudio():
             "orient_type": 'LOCAL',
             "orient_matrix": ((1, 0, 0), (0, 1, 0), (0, 0, 1))
         })
+    # Add studio ceiling
+    for edge in bm.edges:
+            edge.select = False
+    bm.edges.ensure_lookup_table()
+    bm.edges[5].select = True
+    bmesh.update_edit_mesh(studio.data)
+    mesh.extrude_context_move(
+        TRANSFORM_OT_translate={
+            "value": (0,studioSize^2,0),
+            "orient_axis_ortho": 'X',
+            "orient_type": 'LOCAL',
+        })
+    bmesh.update_edit_mesh(studio.data)
 
     # Extrude Studio (add thickness)
     ensureMode('OBJECT')
@@ -60,8 +76,8 @@ def addStudio():
     # Resize and rename Studio
     ensureMode('OBJECT')
     blendOperators.transform.resize(value=(setStudioX, setStudioY, setStudioZ))
-    blendContext.object.name = studioName
-    #blendContext.object.hide_set(True)
+    
+    #studio.hide_set(True)
 
 
 def addSet(infiniteBackground=False):
@@ -73,13 +89,15 @@ def addSet(infiniteBackground=False):
                              align='WORLD',
                              location=(0, 0, studioThickness),
                              scale=(1, 1, 1))
+    set = blendContext.object
+    set.name = setName
     # Extrude plane to make walls
     mesh.select_all(action='DESELECT')
-    bm = bmesh.from_edit_mesh(blendContext.object.data)
+    bm = bmesh.from_edit_mesh(set.data)
     for edge in bm.edges:
         if edge.index in [0, 1, 2]:
             edge.select = True
-    bmesh.update_edit_mesh(blendContext.object.data)
+    bmesh.update_edit_mesh(set.data)
     mesh.extrude_context_move(
         TRANSFORM_OT_translate={
             "value": (0, 0, setSize * 1.3),
@@ -93,7 +111,7 @@ def addSet(infiniteBackground=False):
                 edge.select = True
             else:
                 edge.select = False
-        bmesh.update_edit_mesh(blendContext.object.data)
+        bmesh.update_edit_mesh(set.data)
         mesh.bevel(offset=float(setSize / 5),
                    offset_pct=0,
                    segments=5,
@@ -114,30 +132,44 @@ def addSet(infiniteBackground=False):
     # Resize and rename Studio
     ensureMode('OBJECT')
     blendOperators.transform.resize(value=(setScaleX, setScaleY, setScaleZ))
-    blendContext.object.name = setName
 
 
 def addPlane():
-    z = setThickness + studioThickness + setSize/3
+    z = setThickness + studioThickness + setSize/5
+    y = -setSize/3
     # Create and name abstract plane
     ensureMode('OBJECT')
     blendOperators.mesh.primitive_plane_add(size=planeSize,
                                             enter_editmode=False,
                                             align="WORLD",
-                                            location=(0, 0, z),
+                                            location=(0, y, z),
                                             scale=(1, 1, 1))
-    blendContext.object.name = planeName
+    plane = blendContext.object
+    plane.name = planeName
     ensureMode('EDIT')
-    blendOperators.mesh.subdivide(number_cuts=50)
+    # int(10 - 100)
+    # blendOperators.mesh.subdivide(number_cuts= )
+    blendOperators.mesh.subdivide(number_cuts=100)
+    # offset=float(-30,30), uniform=float(0,1), normal=float(0,1), seed=int(0,50)
+    blendOperators.transform.vertex_random(
+        offset=np.random.uniform(-5,5), 
+        uniform=np.random.uniform(0,1), 
+        normal=np.random.uniform(0,1), 
+        seed=np.random.randint(0, 10))
+    blendOperators.mesh.tris_convert_to_quads()
+    bpy.ops.mesh.relax(iterations=np.random.randint(0, 10))
+    
     ensureMode('OBJECT')
-    # Resize and rename Studio
+    # Rotate plane
     plane = blendContext.active_object
     plane.rotation_euler[0] += radians(90)
     cursorToLocation(plane.location)
     # Add subsurf
     subSurf = plane.modifiers.new(name=pSubsurfName, type='SUBSURF')
     subSurf.show_only_control_edges = False
-    subSurf.boundary_smooth = 'PRESERVE_CORNERS'
+    subSurf.boundary_smooth = 'ALL'
+    subSurf.uv_smooth = 'SMOOTH_ALL'
+    subSurf.quality = 6
     # Add marble texture to plane
     displace = plane.modifiers.new(name=displaceModName, type='DISPLACE')
     displace.strength = 0.1
@@ -151,13 +183,15 @@ def addPlane():
     # Add smoothness and thickness to plane
     solidify = plane.modifiers.new(name=pSolidifyMod, type='SOLIDIFY')
     solidify.thickness = 0.7
+    solidify.use_quality_normals = True
     smoothness = plane.modifiers.new(name=pSmoothMod, type='SMOOTH')
     smoothness.iterations = 15
     smoothness.use_x = False
     smoothness.use_y = False
     smoothness.use_z = True
+    
     plane.data.polygons.foreach_set('use_smooth', [True] *
-                                    len(blendContext.object.data.polygons))
+                                    len(plane.data.polygons))
     plane.modifiers.update()
     plane.data.update()
     # create bezierCurve
@@ -168,6 +202,7 @@ def addPlane():
         scale=(1, 1, 1))
     bezierCurve = blendContext.object
     bezierCurve.name = bezierCurveName
+    bezierCurve.data.name = f"{bezierCurveName}_data"
     # create axes around bezier
     blendOperators.object.empty_add(type='PLAIN_AXES',
                                     align='WORLD',
@@ -202,7 +237,25 @@ def addPlaneMat():
     shader.inputs["Metallic"].default_value = np.random.uniform(0,0.6)
     links.new(shader.outputs["BSDF"], outputSurface)
 
-def lightsCamera( cameraType=1):
+def addGlassMat():
+    # creating a new material
+    mat = newMaterial(name=glassMatName)
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    r, g, b = 255, 255, 255
+
+    # adding a output material node
+    outputSurface, outputVolume, outputDisplacement = addNode(
+        nodes, 'ShaderNodeOutputMaterial').inputs
+
+    # adding a shader node
+    shader = addNode(nodes, 'ShaderNodeBsdfPrincipled')
+    shader.inputs["Base Color"].default_value = (r, g, b, 1)
+    shader.inputs["Roughness"].default_value = 0
+    shader.inputs["Metallic"].default_value = 1
+    links.new(shader.outputs["BSDF"], outputSurface)
+
+def lightsCamera():
     ensureMode('OBJECT')
     # Main Camera
     blendOperators.object.camera_add(align='VIEW',
@@ -210,9 +263,9 @@ def lightsCamera( cameraType=1):
                                      scale=(1, 1, 1))
     camera = blendContext.object
     camera.name = cameraName
-    camera.location[1] = float(12)
+    camera.location[1] = float(12/6)
     # ['PERSP','PANO','ORTHO']
-    cameraType = cameraTypes[0]
+    cameraType = cameraTypes[1]
     if cameraType=='PERSP':
         camera.data.type = cameraType
         camera.data.dof.use_dof = True
@@ -223,45 +276,49 @@ def lightsCamera( cameraType=1):
         camera.data.type = cameraType
         camera.data.cycles.panorama_type = 'FISHEYE_EQUISOLID'
         camera.data.cycles.fisheye_fov = radians(200)
+        camera.data.cycles.fisheye_lens = 15
         if squareImg:
-            camera.data.sensor_width = 33
+            camera.data.sensor_width = 22
         else:
-            camera.data.sensor_width = 41
+            camera.data.sensor_width = 22
     else:
         camera.data.type = 'PANO'
         camera.data.cycles.panorama_type = 'FISHEYE_EQUISOLID'
         camera.data.cycles.fisheye_fov = radians(200)
+        camera.data.cycles.fisheye_lens = 15
         if squareImg:
             camera.data.sensor_width = 33
         else:
             camera.data.sensor_width = 41
 
     #Backlit
-    blendOperators.object.light_add(type='POINT',
-                                    align='WORLD',
-                                    scale=(1, 1, 1))
-    backlit = blendContext.object
-    backlit.name = backlitName
-    backlit.data.energy = 100000
-    backlit.data.color = (1, 0.473101, 0.031306)# randomColor()
-    
-    backlit.location = (0, float(-setSize / setScaleY - 10), float(setSize))
+    #align='WORLD'
+    backlit = newObject(name=backlitName,
+                        data=blendData.lights.new(
+                            name=f"{backlitName}_data", 
+                            type='POINT')
+                        )
+    backlit.data.energy = int(1000/2)
+    backlit.data.color =  randomColor() #(252, 228, 226)
+    backlit.location = (0, float(-setSize / setScaleY - 10), float(setSize+10))
     # World Lighting 
     world = blendData.worlds['World'].node_tree  
     nodes = world.nodes
     links = world.links
     nodes.clear()
     # Add Background node
-    node_background = addNode(nodes, 'ShaderNodeBackground')
+    node_bg = addNode(nodes, 'ShaderNodeBackground')
+    node_bg.inputs['Strength'].default_value = 1.5
+
     # Add Environment Texture node
-    node_environment = addNode(nodes, 'ShaderNodeTexEnvironment')
+    node_env = addNode(nodes, 'ShaderNodeTexEnvironment')
     # Load and assign the image to the node property
-    node_environment.image = blendData.images.load(f"{repo}/hdri/museumplein_8k.exr")
+    node_env.image = blendData.images.load(f"{repo}/hdri/museumplein_8k.exr")
     # Add Output node
     node_output = addNode(nodes, 'ShaderNodeOutputWorld') 
     # Link all nodes
-    links.new(node_environment.outputs["Color"], node_background.inputs["Color"])
-    links.new(node_background.outputs["Background"], node_output.inputs["Surface"])
+    links.new(node_env.outputs["Color"], node_bg.inputs["Color"])
+    links.new(node_bg.outputs["Background"], node_output.inputs["Surface"])
 
 def animate():
     ensureMode('OBJECT')
@@ -317,12 +374,10 @@ def animate():
 
 def action():
     if isVideo: animate()
-    render(isVideo=isVideo)
-
+    #render(isVideo=isVideo)
 
 def composite():
     pass
-
 
 def blend():
     cleanSlate()
@@ -334,13 +389,13 @@ def blend():
     addPlane()
     # Materials
     addPlaneMat()
+    addGlassMat()
     # Adding materials to objects
     addMaterialToObjects([planeName], planeMatName)
     # Lights & Camera
     lightsCamera()
     # Action (Animate +Render )
     action()
-
 
 time_start = time()
 blend()

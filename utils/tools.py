@@ -1,6 +1,6 @@
-import os, sys, bpy, bmesh
+import os, sys, bpy, string, random
 import numpy as np
-from time import strftime, localtime
+from time import strftime, localtime, time
 
 repo = "C:/Users/Admin/Desktop/genArt"
 blendData = bpy.data
@@ -98,8 +98,31 @@ def addMaterialsToObject(object=None, materials=[]):
         mesh = blendData.objects[object].data
         mesh.materials.append(blendData.materials[material])
 
+
 def randomColor():
     return list(np.random.choice(range(256), size=3))
+
+
+def addToCollection(object, collectionName=None):
+    if collectionName:
+        if collectionName not in blendData.collections:
+            raise Exception("Collection doesn't exist")
+        else:
+            blendData.collections[collectionName].objects.link(object)
+    else:
+        # Add object to scene not in any specified collection
+        blendContext.scene.collection.objects.link(object)
+
+
+def newObject(name, data, collectionName=None):
+    if not name:
+        raise Exception("New object doesn't have a name!")
+    obj = blendData.objects.new(name, data)
+    if collectionName:
+        addToCollection(obj, collectionName)
+    else:
+        addToCollection(obj)
+    return obj
 
 # SETUP
 def cyclesSettings(frameTimeLimit=None, squareRender=True):
@@ -188,7 +211,7 @@ def render(isVideo=False):
     render = scene.render
     render.use_file_extension = False
     if isVideo:
-        FILE_NAME = f"img_{strftime('%I_%M_%S_%p',localtime())}.mp4"
+        FILE_NAME = f"vid_{strftime('%m_%d_%Y',localtime())}_{hex(hash(time()))[3:]}.mp4"
         render.ffmpeg.format = 'MPEG4'
         render.ffmpeg.constant_rate_factor = 'HIGH'
         render.image_settings.file_format = 'FFMPEG'
@@ -198,7 +221,7 @@ def render(isVideo=False):
                                      write_still=True)
         render.filepath = f'{repo}/output/vid/{FILE_NAME}'
     else:
-        FILE_NAME = f"img_{strftime('%I_%M_%S_%p',localtime())}.png"
+        FILE_NAME = f"img_{strftime('%m_%d_%Y',localtime())}_{hex(hash(time()))[3:]}.png"
         render.image_settings.file_format = 'PNG'
         render.image_settings.color_depth = '16'
         render.image_settings.color_mode = 'RGBA'

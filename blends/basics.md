@@ -28,13 +28,21 @@ reset - bpy.ops.wm.read_factory_settings()
   - Light
   - Camera
   - Object(Mesh)
+    - A mesh is a collection of vertices, edges, and faces that describe the shape of a 3D object - mesh = vertices + edges + faces
     - AFAIK there can be only one mesh per object. 
     - However there can be multiple objects sharing the same mesh data block.
     - obj.name gives you the object name. 
     - obj.data.name gives you mesh name. 
+  - Materials & nodes
+  - Texture
+  - Render
 
 
 light_data = bpy.data.lights.new('light', type='POINT')
 light = bpy.data.objects.new('light', light_data)
 bpy.context.collections.objects.link(light)
 light.location = (3, 4, -5)
+
+
+obj = bpy.data.objects.new(name, mesh) 
+bpy.context.scene.collection.objects.link(obj)

@@ -14,13 +14,8 @@ cd Applications
 
 
 ## Fix common context error
-make sure to set the context to the 3d VIew
-i.e 
-```
-    bpy.context.area.ui_type = "VIEW_3D"
-        [YOUR SCRIPT HERE]
-    bpy.context.area.ui_type = "TEXT_EDITOR"
-```
+ensureMode('REQUIRED_MODE') - 'OBJECT','EDIT' ...etc
+
 # Mint on Polygon 
 - mintnft.today
 - ask about sending to someone else for free
@@ -29,13 +24,6 @@ i.e
 
 # Best Addons!!!!!!
 - Keentools (3d face)
-
-
-
-
-
-
-
 
 # Pathway
 []
