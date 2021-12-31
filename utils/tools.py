@@ -128,12 +128,12 @@ def newObject(name, data, collectionName=None):
 def cyclesSettings(frameTimeLimit=None, squareRender=True):
 
     # Changes default material view to Eevee
-    area = next(area for area in blendContext.screen.areas
-                if area.type == 'VIEW_3D')
-    space = next(space for space in area.spaces if space.type == 'VIEW_3D')
-    space.shading.type = 'RENDERED'  # set the viewport shading
-    space.shading.use_scene_lights = True
-    space.shading.use_scene_world = True
+    # area = next(area for area in blendContext.screen.areas
+    #             if area.type == 'VIEW_3D')
+    # space = next(space for space in area.spaces if space.type == 'VIEW_3D')
+    # space.shading.type = 'RENDERED'  # set the viewport shading
+    # space.shading.use_scene_lights = True
+    # space.shading.use_scene_world = True
     #
     scene.render.resolution_x = 1080
     if squareRender:
@@ -149,7 +149,7 @@ def cyclesSettings(frameTimeLimit=None, squareRender=True):
     scene.cycles.use_adaptive_sampling = True
     scene.cycles.samples = int(4096 / 2)
     scene.cycles.adaptive_min_samples = 0
-    scene.cycles.adaptive_threshold = 0.005  #0.01
+    scene.cycles.adaptive_threshold = 0.01  #0.01
     scene.render.film_transparent = True
     scene.cycles.glossy_bounces = 15
     scene.cycles.denoising_prefilter = 'ACCURATE'

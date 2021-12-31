@@ -13,7 +13,7 @@ blendOperators = bpy.ops
 studioThickness, setThickness = 2, 2
 isVideo, squareImg = False, True
 # Use global variables to easily access any object
-studioName, studioSize, setStudioX, setStudioY,setStudioZ = "Studio", 100, 2, 2,2
+studioName, studioSize, setStudioX, setStudioY,setStudioZ = "Studio", 64, 2, 2,2
 setName, setSize, setScaleX, setScaleY,setScaleZ = "Set", 32, 2, 2, 1
 planeName, planeMatName, planeSize = "AbstractPlane", "PlaneMat", 8
 pSubsurfName, pMarbleTextureName, pSolidifyMod, pSmoothMod = "PlaneSubsurf", 'PlaneMarble', "PlaneThickness", "PlaneSmoothness"
@@ -79,7 +79,6 @@ def addStudio():
     
     #studio.hide_set(True)
 
-
 def addSet(infiniteBackground=False):
     ensureMode('OBJECT')
     mesh = blendOperators.mesh
@@ -133,28 +132,36 @@ def addSet(infiniteBackground=False):
     ensureMode('OBJECT')
     blendOperators.transform.resize(value=(setScaleX, setScaleY, setScaleZ))
 
-
-def addPlane(object):
-
+def addPlane():
+    z = setThickness + studioThickness + setSize/5
+    y = -setSize/3
+    mesh = blendOperators.mesh
+    # Create and name abstract plane
     ensureMode('OBJECT')
-    plane = object
+    mesh.primitive_gear(align='WORLD', location=(0, y, z),change=False)
+
+    blendContext.object.scale = (float(planeSize/1.5),float(planeSize/1.5),float(planeSize/1.5))
+
+    plane = blendContext.object
     plane.name = planeName
     ensureMode('EDIT')
-    # int(10 - 100)
-    # blendOperators.mesh.subdivide(number_cuts= )
-    blendOperators.mesh.subdivide(number_cuts=100)
-    # offset=float(-30,30), uniform=float(0,1), normal=float(0,1), seed=int(0,50)
-    blendOperators.transform.vertex_random(
-        offset=np.random.uniform(-5,5), 
-        uniform=np.random.uniform(0,1), 
-        normal=np.random.uniform(0,1), 
-        seed=np.random.randint(0, 10))
-    blendOperators.mesh.tris_convert_to_quads()
-    bpy.ops.mesh.relax(iterations=np.random.randint(0, 10))
-    
+    # subdivide(number_cuts= int(10 - 100)) offset=float(-30,30), uniform=float(0,1), normal=float(0,1), seed=int(0,50)
+    # bm = bmesh.from_edit_mesh(blendContext.object.data)
+    # selected_edges = [edge for edge in bm.edges if edge.select]
+    # bmesh.ops.subdivide_edges(bm,
+    #                       edges=selected_edges,
+    #                       cuts=30,#np.random.randint(10, 40)
+    #                       )
+    # bmesh.update_edit_mesh(blendContext.object.data)
+    # blendOperators.transform.vertex_random(
+    #     offset=np.random.uniform(-1,1), 
+    #     uniform=np.random.uniform(0,1), 
+    #     normal=np.random.uniform(0,1), 
+    #     seed=np.random.randint(0, 5))
+    blendOperators.mesh.quads_convert_to_tris()
+    blendOperators.mesh.relax(iterations=np.random.randint(0, 6))
     ensureMode('OBJECT')
     # Rotate plane
-    plane = blendContext.active_object
     plane.rotation_euler[0] += radians(90)
     cursorToLocation(plane.location)
     # Add subsurf
@@ -183,8 +190,8 @@ def addPlane(object):
     smoothness.use_y = False
     smoothness.use_z = True
     
-    plane.data.polygons.foreach_set('use_smooth', [True] *
-                                    len(plane.data.polygons))
+    plane.data.polygons.foreach_set('use_smooth', [True] *len(plane.data.polygons))
+    
     plane.modifiers.update()
     plane.data.update()
     # create bezierCurve
@@ -306,7 +313,7 @@ def lightsCamera():
     # Add Environment Texture node
     node_env = addNode(nodes, 'ShaderNodeTexEnvironment')
     # Load and assign the image to the node property
-    node_env.image = blendData.images.load(f"{repo}/hdri/museumplein_8k.exr")
+    node_env.image = blendData.images.load(f"{repo}/hdri/museumplein_4k.exr")
     # Add Output node
     node_output = addNode(nodes, 'ShaderNodeOutputWorld') 
     # Link all nodes
@@ -367,127 +374,27 @@ def animate():
 
 def action():
     if isVideo: animate()
-    #render(isVideo=isVideo)
+    render(isVideo=isVideo)
 
 def composite():
     pass
 
-def primitives():
-    z = setThickness + studioThickness + setSize/5
-    y = -setSize/3
-    primitives = []
-    mesh = blendOperators.mesh
-    # Create and name abstract plane
-    ensureMode('OBJECT')
-    mesh.primitive_plane_add(size=planeSize,
-                                            enter_editmode=False,
-                                            align="WORLD",
-                                            location=(0, y, z),
-                                            scale=(1, 1, 1))
-    primitives.append(blendContext.object)
-    mesh.primitive_cube_add(size=planeSize, enter_editmode=False,
-                                            align='WORLD', location=(0, y, z),
-                                            scale=(1, 1, 1))
-    
-    primitives.append(blendContext.object)
-    mesh.primitive_circle_add(radius=int(planeSize/2), enter_editmode=False,
-                                            align='WORLD', location=(0, y, z),
-                                            scale=(1, 1, 1))
-    
-    primitives.append(blendContext.object)
-    mesh.primitive_uv_sphere_add(radius=int(planeSize/2), enter_editmode=False,
-                                            align='WORLD', location=(0, y, z), 
-                                            scale=(1, 1, 1))
-
-    primitives.append(blendContext.object)
-    mesh.primitive_ico_sphere_add(radius=int(planeSize/2), enter_editmode=False,
-                                            align='WORLD', location=(0, y, z), 
-                                            scale=(1, 1, 1))
-
-    primitives.append(blendContext.object)
-    mesh.primitive_monkey_add(size=planeSize, enter_editmode=False,
-                                            align='WORLD', location=(0, y, z), 
-                                            scale=(1, 1, 1))
-
-    primitives.append(blendContext.object)
-    blendOperators.object.metaball_add(type='BALL', radius=int(planeSize/2), enter_editmode=False,
-                                            align='WORLD', location=(0, y, z), scale=(1, 1, 1))
-
-    primitives.append(blendContext.object)
-
-
-
-    mesh.primitive_cylinder_add(radius=int(planeSize/2), depth=2, enter_editmode=False,
-                                            align='WORLD', location=(0, y, z), 
-                                            scale=(1, 1, 1))
-
-    primitives.append(blendContext.object)
-    mesh.primitive_cone_add(radius1=1, radius2=0, depth=2, enter_editmode=False,
-                                            align='WORLD', location=(0, y, z), 
-                                            scale=(1, 1, 1))
-
-    primitives.append(blendContext.object)
-    mesh.primitive_torus_add(align='WORLD', location=(0, y, z),
-                                            major_radius=1, minor_radius=0.25, 
-                                            abso_major_rad=1.25, abso_minor_rad=0.75)
-
-    primitives.append(blendContext.object)
-    mesh.generate_geodesic_dome(align='WORLD', location=(0, y, z),change=False)
-
-    primitives.append(blendContext.object)
-    mesh.primitive_round_cube_add(align='WORLD', location=(0, y, z),change=False)
-
-    primitives.append(blendContext.object)
-    mesh.primitive_twisted_torus_add(align='WORLD', location=(0, y, z),change=False)
-
-    primitives.append(blendContext.object)
-    mesh.primitive_supertoroid_add(align='WORLD', location=(0, y, z),change=False)
-
-    primitives.append(blendContext.object)
-    mesh.primitive_torusknot_add(align='WORLD', location=(0, y, z),change=False)
-
-    primitives.append(blendContext.object)
-    mesh.primitive_gear(align='WORLD', location=(0, y, z),change=False)
-
-    primitives.append(blendContext.object)
-    blendOperators.object.metaball_add(type='CAPSULE', enter_editmode=False,
-                                            align='WORLD', location=(0, y, z), scale=(1, 1, 1))
-
-    primitives.append(blendContext.object)
-    blendOperators.object.metaball_add(type='PLANE', enter_editmode=False,
-                                            align='WORLD', location=(0, y, z), scale=(1, 1, 1))
-
-    primitives.append(blendContext.object)
-    blendOperators.object.metaball_add(type='ELLIPSOID', enter_editmode=False,
-                                            align='WORLD', location=(0, y, z), scale=(1, 1, 1))
-
-    primitives.append(blendContext.object)
-    blendOperators.object.metaball_add(type='CUBE', enter_editmode=False,
-                                            align='WORLD', location=(0, y, z), scale=(1, 1, 1))
-
-    primitives.append(blendContext.object)
-    
-    return primitives
-
 def blend():
-    shapes = primitives()
-    for shape in shapes:
-        cleanSlate()
-        cyclesSettings(squareRender=squareImg)
-        # Studio and Set
-        addStudio()
-        addSet(infiniteBackground=True)
-        # Objects
-        addPlane(shape)
-        # Materials
-        addPlaneMat()
-        addGlassMat()
-        # Adding materials to objects
-        addMaterialToObjects([planeName], planeMatName)
-        # Lights & Camera
-        lightsCamera()
-        # Action (Animate +Render )
-        action()
+    cleanSlate()
+    cyclesSettings(squareRender=squareImg)
+    # Studio and Set
+    addStudio()
+    addSet(infiniteBackground=True)
+    # Objects
+    addPlane()
+    # Materials
+    addPlaneMat()
+    # Adding materials to objects
+    addMaterialToObjects([planeName], planeMatName)
+    # Lights & Camera
+    lightsCamera()
+    # Action (Animate +Render )
+    # action()
 
 time_start = time()
 blend()
