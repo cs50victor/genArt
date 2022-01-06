@@ -1,6 +1,7 @@
 
 https://github.com/AaronJackson/vrn-docker/
-
+https://github.com/aiff22/DPED
+https://towardsdatascience.com/make-your-pictures-beautiful-with-a-touch-of-machine-learning-magic-31672daa3032
 
 sudo docker pull asjackson/vrn:latest
 

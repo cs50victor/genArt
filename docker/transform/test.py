@@ -14,10 +14,11 @@ def autoPadding(start, stop, limit ):
     elif stop < start:
         end = limit if stop+1<limit else stop+1
         return end
-    end = limit if stop+1>limit else stop+1
-    return end
+    else:
+        end = limit if stop+1>limit else stop+1
+        return end
 
-def unsharp_mask(image, kernel_size=(5, 5), sigma=1.0, amount=1.0, threshold=0):
+def unsharp_mask(image, kernel_size=(5, 5), sigma=1.0, amount=1.5, threshold=0):
     """Return a sharpened version of the image, using an unsharp mask."""
     blurred = cv.GaussianBlur(image, kernel_size, sigma)
     sharpened = float(amount + 1) * image - float(amount) * blurred
@@ -36,8 +37,8 @@ def detectFace(image):
     #                                 'haarcascade_eye.xml')
 
     img = cv.imread(image)
-    imgH = img.shape[1]
-    imgW = img.shape[0]
+    imgW = img.shape[1]
+    imgH = img.shape[0]
     minisize = (imgH,imgW)
 
     # miniframe = cv.resize(img, minisize)
@@ -45,11 +46,11 @@ def detectFace(image):
     faces = face_cascade.detectMultiScale(img)
     
     for f in faces:
-        paddingW, paddingH  = [800,800] 
+        paddingW, paddingH  = 200,200 
         x, y, w, h = [ v for v in f ]
         hStart,hStop = autoPadding(y, y-paddingH, 1), autoPadding(y+h,y+h+paddingH,imgH)
         wStart,wStop = autoPadding(x, x-paddingW, 1), autoPadding(x+w,x+w+paddingW,imgW)
-
+        
         face_region =  img[hStart:hStop, wStart:wStop]
 
         sr = cv.dnn_superres.DnnSuperResImpl_create()
@@ -67,6 +68,6 @@ def detectFace(image):
 
 
 time_start = time()
-detectFace(f"{repo}/input/rocky-bg.png")
+detectFace(f"{repo}/input/mbj.jpg")
 print(f"\n{strftime('%I:%M:%S %p',localtime())}")
 print("Script execution time: [%.7f] seconds" % (time() - time_start))
