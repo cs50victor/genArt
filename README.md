@@ -5,6 +5,14 @@
 ## Deactivate venv
 - deactivate
 
+## Blender python directory
+"c:\Program Files\Blender Foundation\Blender 3.0\3.0\python\bin\python.exe" -m pip list
+
+# Fix PILLOW installation problem
+"c:\Program Files\Blender Foundation\Blender 3.0\3.0\python\bin\python.exe" -m ensurepip --default-pip
+"c:\Program Files\Blender Foundation\Blender 3.0\3.0\python\bin\python.exe" -m pip install Pillow
+
+
 # Social Media
 - Behance
 - Dribble
@@ -44,3 +52,4 @@ theano
 
 
 We trained a GAN (Generative Adversarial Network) on thousands of dress designs. The AI algorithm learned how to generate new designs that don't exist in the dataset. We picked one of the designs AI hallucinated and decided to bring it to reality! 
+
