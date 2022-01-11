@@ -66,3 +66,8 @@ source removebg/scripts/activate (unix)
 pip3 install numpy scipy torch torchvision torchaudio rembg matplotlib
 
 rembg -p withbg portraits
+
+
+
+
+https://colab.research.google.com/drive/1i04HzQJJODfqYOZ8REk98PuJy-SzxxWL#scrollTo=Mp4LBsttKvFN&uniqifier=1
