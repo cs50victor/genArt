@@ -61,9 +61,10 @@ jupyter serverextension enable --py jupyter_http_over_ws
 jupyter notebook --NotebookApp.allow_origin='https://colab.research.google.com' --port=8888 --NotebookApp.port_retries=0
 
 # Remove bg virtualenv - USE GIT BASH
-virtualenv --python=python3.8 removebg
-source removebg/scripts/activate (unix)
-pip3 install numpy scipy torch torchvision torchaudio rembg matplotlib
+virtualenv --python=python3.8 vnv
+source vnv/scripts/activate (unix) 
+
+pip3 install numpy opencv-contrib-python rembg matplotlib sklearn tensorflow tensorflow_hub --no-cache-dir
 
 rembg -p withbg portraits
 
