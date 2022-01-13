@@ -70,3 +70,17 @@ rembg -p withbg portraits
 
 
 https://colab.research.google.com/drive/1i04HzQJJODfqYOZ8REk98PuJy-SzxxWL?usp=sharing
+
+
+https://github.com/dvschultz/ml-art-colabs
+"GT Alpina Typewriter" font
+https://artificial-images.com/project/linnaeus-pip-machine-learning-eugenics/ background color
+
+
+class ndarray_pydata(np.ndarray):
+    def __bool__(self) -> bool:
+        return len(self) > 0
+
+edges = edges_np.view(ndarray_pydata)
+faces = faces_np.view(ndarray_pydata)
+mesh.from_pydata(vertices, edges, faces)
