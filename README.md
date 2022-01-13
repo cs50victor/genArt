@@ -64,7 +64,7 @@ jupyter notebook --NotebookApp.allow_origin='https://colab.research.google.com' 
 virtualenv --python=python3.8 vnv
 source vnv/scripts/activate (unix) 
 
-pip3 install numpy opencv-contrib-python rembg matplotlib sklearn tensorflow tensorflow_hub --no-cache-dir
+pip3 install numpy opencv-contrib-python rembg matplotlib sklearn tensorflow tensorflow_hub sketchify --no-cache-dir
 
 rembg -p withbg portraits
 
