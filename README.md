@@ -84,3 +84,37 @@ class ndarray_pydata(np.ndarray):
 edges = edges_np.view(ndarray_pydata)
 faces = faces_np.view(ndarray_pydata)
 mesh.from_pydata(vertices, edges, faces)
+
+
+## Workflow
+raw_img -> cropAndUpscale -> removebg 
+    -> themal, grayscale, sketch
+    a -> apply texture filters 
+        -> upscaled img, themal, grayscale, sketch
+    b -> STYLE GAN to upscaled img, grayscale, sketch
+    
+    -> removebg from a and b 
+    > add white background
+
+
+use alisha.jpeg
+- loop  img:dir(raw) 
+  -> removebg("raw", "in") [in]
+  --------------------- Colab notebook ---------------
+  -> detectFace(path) [in]
+  -> thermal, grey, sketch
+  -> for [normal, thermal, grey, sketch] [in2]
+    -> for texture in os.listdir("textures/"):
+                ....
+                tensor_to_image(output_image).save(f"out/{name}_{textureNum}.{ext}")[out]
+  -> for pic in os.listDir("in/"):
+    -> for portaits in portatraits:
+        .... [out]
+  -----------------------------------------------------
+  -> download , rename dir , removebg, add white bg in same new dir
+
+
+# pyenv (mac)
+pyenv virtualenv 3.8.12 dst_vnv
+pyenv activate dst_vnv | pyenv deactivate
+pyenv uninstall dst_vnv      
