@@ -102,7 +102,7 @@ use alisha.jpeg
   -> removebg("raw", "in") [in]
   --------------------- Colab notebook ---------------
   -> detectFace(path) [in]
-  -> thermal, grey, sketch
+  -> thermal, grey, sketch1, sketch2
   -> for [normal, thermal, grey, sketch] [in2]
     -> for texture in os.listdir("textures/"):
                 ....
