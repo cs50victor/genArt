@@ -1,3 +1,9 @@
+DST_GAN/*/*.jpg
+DST_GAN/*/*.jpeg
+DST_GAN/*/*.png
+!DST_GAN/filters/*
+!DST_GAN/bg/*
+
 .DS_Store
 *.DS_Store
 .vscode/
