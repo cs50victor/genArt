@@ -1,8 +1,9 @@
-DST_GAN/*/*.jpg
-DST_GAN/*/*.jpeg
-DST_GAN/*/*.png
-!DST_GAN/filters/*
+# Ignore old images in steps
+DST_GAN/**/*.jpeg
+DST_GAN/**/*.jpg
+DST_GAN/**/*.png
 !DST_GAN/bg/*
+!DST_GAN/filters/**
 
 .DS_Store
 *.DS_Store

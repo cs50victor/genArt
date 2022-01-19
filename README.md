@@ -66,6 +66,10 @@ source vnv/scripts/activate (unix)
 
 pip3 install numpy opencv-contrib-python rembg matplotlib sklearn tensorflow tensorflow_hub sketchify --no-cache-dir
 
+
+**Basic installation for dst_vnv**
+pip3 install numpy opencv-contrib-python rembg matplotlib sklearn sketchify noise --no-cache-dir
+
 rembg -p withbg portraits
 
 
@@ -98,21 +102,22 @@ raw_img -> cropAndUpscale -> removebg
 
 
 use alisha.jpeg
-- loop  img:dir(raw) 
-  -> removebg("raw", "in") [in]
+- loop  img:dir(raw)            -- "raw/"
+  -> removebg("raw", "in") [in] -- "in/"
   --------------------- Colab notebook ---------------
   -> detectFace(path) [in]
-  -> thermal, grey, sketch1, sketch2
-  -> for [normal, thermal, grey, sketch] [in2]
-    -> for texture in os.listdir("textures/"):
-                ....
-                tensor_to_image(output_image).save(f"out/{name}_{textureNum}.{ext}")[out]
+  -> thermal, grey, sketch
+  -> for texture in os.listdir("textures/"):
+              ....
+              tensor_to_image(output_image).save(f"out/{name}_{textureNum}.{ext}")[out]
   -> for pic in os.listDir("in/"):
     -> for portaits in portatraits:
         .... [out]
   -----------------------------------------------------
   -> download , rename dir , removebg, add white bg in same new dir
-
+  -> thermal, grey, sketch for all output images
+  
+replace img eyes
 
 # pyenv (mac)
 pyenv virtualenv 3.8.12 dst_vnv
