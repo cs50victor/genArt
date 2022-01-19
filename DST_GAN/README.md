@@ -21,4 +21,7 @@ find step_3 step_4 step_5 step_6 step_7 \( -iname \*.jpg -o -iname \*.png -o -in
 
 
 ## Implement later
-https://stackoverflow.com/questions/22029562/python-how-to-make-simple-animated-loading-while-process-is-running
+- https://stackoverflow.com/questions/22029562/python-how-to-make-simple-animated-loading-while-process-is-running
+- multi threading
+- Cython
+- https://stackoverflow.com/questions/51646185/how-to-generate-a-paper-like-background-with-opencv
