@@ -140,9 +140,10 @@ def stepSeven():
     topContMargin = fontHeight + fontMargin
     containerW, containerY = int(512+(xMargin*2)), int(512+topContMargin)
     nameArea= (512,topContMargin)
+    validFonts = [i for i in os.listdir("fonts/") if (i.endswith(".ttf") or i.endswith(".otf"))]
 
     personName = "alisha".upper()
-    nameColors = ["#000000","#e0491d","#36542b"]
+    nameColors = ["#000000","#e0491d"]
     signaturePos = (xMargin+5,containerY-20)
 
     filterImg = Image.open(f"filters/noisefilm.png")
@@ -151,8 +152,9 @@ def stepSeven():
     for fileName in os.listdir(f"{intputDir}/"):
         if fileName.endswith(".png"):
             mainImgName = fileName.split(".")[0]
-            container = Image.new("RGB", (containerW, containerY), (255,255,255))
             for bgNum in range(1,3):
+                    nameFont=choice(validFonts)
+                    container = Image.new("RGB", (containerW, containerY), (255,255,255))
                     coloredImg,rgb = addBg(f"{intputDir}/{fileName}")
                     coloredImg = coloredImg.resize(mainImgSize)
                     coloredImgBase = Image.new("RGB", (512, 512),rgb)
@@ -161,7 +163,9 @@ def stepSeven():
                     coloredImgBase.paste(filterImg, mask=filterImg.split()[3])
                     coloredImgBase.paste(paperImg, mask=paperImg.split()[3])
                     container.paste(coloredImgBase,(xMargin,topContMargin))
-                    withName = addTextToImg(container,personName,nameArea,color=choice(nameColors))
+                    withName = addTextToImg(container,personName,nameArea,
+                                                fontFamily=nameFont,
+                                                color=nameColors[0])
                     withSignature = addTextToImg(container,signature,
                                                     isSignature=True, color="black",
                                                     margin=signaturePos)

@@ -108,7 +108,8 @@ def addTextToImg(image, text, nameArea=None, margin=None, isSignature=False,colo
         margin = tempMargin
 
     if isSignature:
-        fontFamily = f"fonts/GirlOnAnAlley.ttf"    
+        # GirlOnAnAlley.ttf SunmoraBold-nRaEM.ttf
+        fontFamily = f"fonts/signature/GirlOnAnAlley.ttf"    
         font = ImageFont.truetype(fontFamily, 15)
         editable_image = ImageDraw.Draw(image)
         editable_image.text(margin, text, font=font, fill=color, align="left")
