@@ -123,3 +123,5 @@ replace img eyes
 pyenv virtualenv 3.8.12 dst_vnv
 pyenv activate dst_vnv | pyenv deactivate
 pyenv uninstall dst_vnv      
+
+https://colab.research.google.com/drive/1i04HzQJJODfqYOZ8REk98PuJy-SzxxWL#scrollTo=Mp4LBsttKvFN
